@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env -S bash -e
 
 # Selecting the partition
 PS3="Select the partition "

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env -S bash -e
 
 makeBoot() {
     # Creating a new partition scheme.
