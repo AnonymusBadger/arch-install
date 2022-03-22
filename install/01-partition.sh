@@ -1,34 +1,5 @@
 #!/bin/bash
 
-# Selecting the disk
-PS3="Select the disk "
-select ENTRY in $(lsblk -dpnoNAME|grep -P "/dev/sd|nvme|vd");
-do
-    DISK=$ENTRY
-    break
-done
-
-# Deleting old partition scheme.
-read -r -p "This will delete the current partition table on $DISK. Do you agree [y/N]? " response
-response=${response,,}
-if [[ "$response" =~ ^(yes|y)$ ]]; then
-    wipefs -af "$DISK" &>/dev/null
-    sgdisk -Zo "$DISK" &>/dev/null
-else
-    echo "Quitting."
-    exit
-fi
-
-
-# Check if boot drive
-read -r -p "It this a boot drive [y/N]? " response
-response=${response,,}
-if [[ "$response" =~ ^(yes|y)$ ]]; then
-    makeBoot
-else
-    makePart
-fi
-
 makeBoot() {
     # Creating a new partition scheme.
     echo "Creating new boot partition on $DISK."
@@ -51,7 +22,7 @@ makeBoot() {
 }
 
 
-makePart() {
+makePrimary() {
     # Creating a new partition scheme.
     echo "Creating new primary partition on $DISK."
     parted "$DISK" mkpart primary 101MiB 100%
@@ -60,3 +31,31 @@ makePart() {
     echo "Informing the Kernel about the disk changes."
     partprobe "$DISK"
 }
+
+# Selecting the disk
+PS3="Select the disk "
+select ENTRY in $(lsblk -dpnoNAME|grep -P "/dev/sd|nvme|vd");
+do
+    DISK=$ENTRY
+    break
+done
+
+# Deleting old partition scheme.
+read -r -p "This will delete the current partition table on $DISK. Do you agree [y/N]? " response
+response=${response,,}
+if [[ "$response" =~ ^(yes|y)$ ]]; then
+    wipefs -af "$DISK" &>/dev/null
+    sgdisk -Zo "$DISK" &>/dev/null
+else
+    echo "Quitting."
+    exit
+fi
+
+# Check if boot drive
+read -r -p "It this a boot drive [y/N]? " response
+response=${response,,}
+if [[ "$response" =~ ^(yes|y)$ ]]; then
+    makeBoot
+else
+    makePrimary
+fi
