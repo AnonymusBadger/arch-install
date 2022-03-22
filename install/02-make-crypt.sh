@@ -25,5 +25,5 @@ while true; do
     [ "$password" = "$password2" ] && break
     echo "Passwords don't match, try again."
 done
-echo -n "$password" | --cipher=aes-xts-plain64 --size=512 luksFormat "$TOCRYPT"
+echo -n "$password" | cryptsetup --cipher=aes-xts-plain64 --size=512 luksFormat "$TOCRYPT"
 echo -n "$password" | cryptsetup open "$TOCRYPT" "$CRYPTNAME"
