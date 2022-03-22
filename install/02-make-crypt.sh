@@ -27,3 +27,9 @@ while true; do
 done
 echo -n "$password" | cryptsetup --cipher=aes-xts-plain64 --size=512 luksFormat "$TOCRYPT"
 echo -n "$password" | cryptsetup open "$TOCRYPT" "$CRYPTNAME"
+
+BTRFS="/dev/mapper/$CRYPTNAME"
+
+# Formatting the LUKS Container as BTRFS.
+echo "Formatting the LUKS container as BTRFS."
+mkfs.btrfs $BTRFS &>/dev/null
