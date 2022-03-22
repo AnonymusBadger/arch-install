@@ -1,8 +1,5 @@
 #!/usr/bin/env -S bash -e
 
-singleDrive() {
-}
-
 # Selecting the cript
 PS3="Select cript "
 select ENTRY in $(lsblk -pnr | grep -P "crypt" | awk '{ print $1 }');
