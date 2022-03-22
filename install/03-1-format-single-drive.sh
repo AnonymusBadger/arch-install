@@ -79,9 +79,6 @@ do
     mount -o "ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,subvol=@${vol//\//_}" "$CRYPT" "/mnt/$vol"
 done
 
-btrfs subvolume create /mnt/@boot
-mount -o "ssd,noatime,space_cache,autodefrag,compress=zstd:15,discard=async,subvol=@boot" "$CRYPT" "/mnt/boot"
-
 ESP="/dev/disk/by-partlabel/ESP"
 mkdir -p /mnt/boot/efi
 mount $ESP /mnt/boot/efi
