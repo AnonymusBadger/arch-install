@@ -2,6 +2,6 @@
 
 # set timedate
 timedatectl set-ntp true
-timedatectl set-timezome Europe/Warsaw
+timedatectl set-timezone Europe/Warsaw
 
 pacman -Syu
