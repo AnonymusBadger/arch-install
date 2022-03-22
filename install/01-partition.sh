@@ -7,8 +7,9 @@ IS_BOOT= # true / false
 
 makeBoot() {
     parted "$DRIVE" mklabel gpt
-    parted "$DRIVE" mkpart ESP fat32 1MiB 512MiB
-    parted "$DRIVE" mkpart primary 512MiB 100%
+    parted "$DRIVE" mkpart ESP fat32 1MiB 301MiB
+    parted "$DRIVE" set 1 esp on
+    parted "$DRIVE" mkpart primary 301MiB 100%
     mkfs.fat -F32 "${DRIVE}1"
 }
 
