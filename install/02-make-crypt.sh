@@ -8,7 +8,7 @@ if [ -z "$TOCRYPT" ]; then
 fi
 
 if [ -z "$CRYPTNAME" ]; then
-    read -r -p "Please choose a new cryptname" CRYPTNAME
+    read -r -p "Please choose a new cryptname: " CRYPTNAME
 fi
 
 while true; do
