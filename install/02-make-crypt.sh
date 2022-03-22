@@ -2,7 +2,7 @@
 
 # Selecting the partition
 PS3="Select the partition "
-select ENTRY in $(lsblk -dpnoNAME|grep -P "/dev/sd|nvme|vd");
+select ENTRY in $(lsblk -pnroNAME | grep -P "/dev/sd|nvme|vd");
 do
     PARTITON=$ENTRY
     break
