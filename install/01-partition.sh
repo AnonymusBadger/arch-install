@@ -1,48 +1,62 @@
 #!/bin/bash
 
-## Please enable UEFI first
+# Selecting the disk
+PS3="Select the disk"
+select ENTRY in $(lsblk -dpnoNAME|grep -P "/dev/sd|nvme|vd");
+do
+    DISK=$ENTRY
+    break
+done
 
-DRIVE=  # /dev/vda for qemu, /dev/sda for VirtualBox
-IS_BOOT= # true / false
+# Deleting old partition scheme.
+read -r -p "This will delete the current partition table on $DISK. Do you agree [y/N]? " response
+response=${response,,}
+if [[ "$response" =~ ^(yes|y)$ ]]; then
+    wipefs -af "$DISK" &>/dev/null
+    sgdisk -Zo "$DISK" &>/dev/null
+else
+    echo "Quitting."
+    exit
+fi
+
+
+# Check if boot drive
+read -r -p "It this a boot drive [y/N]? " response
+response=${response,,}
+if [[ "$response" =~ ^(yes|y)$ ]]; then
+    makeBoot
+else
+    makePart
+fi
 
 makeBoot() {
-    parted "$DRIVE" mklabel gpt
-    parted "$DRIVE" mkpart ESP fat32 1MiB 301MiB
-    parted "$DRIVE" set 1 esp on
-    parted "$DRIVE" mkpart primary 301MiB 100%
-    mkfs.fat -F32 "${DRIVE}1"
+    # Creating a new partition scheme.
+    echo "Creating new boot partition on $DISK."
+    parted -s "$DISK" \
+        mklabel gpt \
+        mkpart ESP fat32 1MiB 101MiB \
+        set 1 esp on
+    ESP="/dev/disk/by-partlabel/ESP"
+
+    echo "Creating new primary partition on $DISK."
+    parted "$DISK" mkpart primary 101MiB 100%
+
+    # Informing the Kernel of the changes.
+    echo "Informing the Kernel about the disk changes."
+    partprobe "$DISK"
+
+    # Formatting the ESP as FAT32.
+    echo "Formatting the EFI Partition as FAT32."
+    mkfs.fat -F 32 $ESP &>/dev/null
 }
+
 
 makePart() {
-    parted "$DRIVE" mklabel gpt
-    parted "$DRIVE" mkpart primary 1MiB 100%
+    # Creating a new partition scheme.
+    echo "Creating new primary partition on $DISK."
+    parted "$DISK" mkpart primary 101MiB 100%
+
+    # Informing the Kernel of the changes.
+    echo "Informing the Kernel about the disk changes."
+    partprobe "$DISK"
 }
-
-choice() {
-    read -r -p "Is this a boot drive [y/n]" choice
-    case $choice in
-        y ) IS_BOOT=true
-            ;;
-        n ) IS_BOOT=false
-            ;;
-        * ) echo "You did not enter a valid response"
-            choice
-    esac
-}
-
-if [ -z "$DRIVE" ]; then
-    read -r -p "Please choose the drive: " DRIVE
-fi
-
-if [ -z "$IS_BOOT" ]; then
-    choice
-fi
-
-if $IS_BOOT
-    then
-        makeBoot
-    else
-        makePart
-fi
-
-lsblk
