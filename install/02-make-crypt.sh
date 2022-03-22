@@ -1,15 +1,14 @@
 #!/bin/bash
 
-TOCRYPT=  # /dev/vda2 for qemu
-CRYPTNAME=
+# Selecting the partition
+PS3="Select the partition "
+select ENTRY in $(lsblk -dpnoNAME|grep -P "/dev/sd|nvme|vd");
+do
+    PARTITON=$ENTRY
+    break
+done
 
-if [ -z "$TOCRYPT" ]; then
-    read -r -p "Please choose a partition to create a new crypt: " TOCRYPT
-fi
-
-if [ -z "$CRYPTNAME" ]; then
-    read -r -p "Please choose a new cryptname: " CRYPTNAME
-fi
+read -r -p "Please choose a new cryptname: " CRYPTNAME
 
 while true; do
     read -r -s -p "Insert password for the LUKS container: " password
@@ -25,8 +24,8 @@ while true; do
     [ "$password" = "$password2" ] && break
     echo "Passwords don't match, try again."
 done
-echo -n "$password" | cryptsetup --cipher=aes-xts-plain64 --size=512 luksFormat "$TOCRYPT"
-echo -n "$password" | cryptsetup open "$TOCRYPT" "$CRYPTNAME"
+echo -n "$password" | cryptsetup --cipher=aes-xts-plain64 --size=512 luksFormat "$PARTITON"
+echo -n "$password" | cryptsetup open "$PARTITON" "$CRYPTNAME"
 
 BTRFS="/dev/mapper/$CRYPTNAME"
 
