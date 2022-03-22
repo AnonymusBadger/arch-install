@@ -68,4 +68,20 @@ EOF
 
 chmod 600 /mnt/@/.snapshots/1/info.xml
 
-# umount /mnt
+umount /mnt
+
+echo "Mounting the newly created subvolumes."
+mount -o ssd,noatime,commit=120,compress=zstd:15 $CRYPT /mnt
+
+for vol in "${COW_VOLS[@]}" "${NOCOW_VOLS[@]}"
+do
+    mkdir -p "/mnt/$vol"
+    mount -o "ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,subvol=@${vol//\//_}" "$CRYPT" "/mnt/$vol"
+done
+
+btrfs subvolume create /mnt/@boot
+mount -o "ssd,noatime,space_cache,autodefrag,compress=zstd:15,discard=async,subvol=@boot" "$CRYPT" "/mnt/boot"
+
+ESP="/dev/disk/by-partlabel/ESP"
+mkdir -p /mnt/boot/efi
+mount $ESP /mnt/boot/efi
