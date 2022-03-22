@@ -1,7 +1,7 @@
 #!/usr/bin/env -S bash -e
 
-# Selecting the cript
-PS3="Select cript "
+# Selecting the crypt
+PS3="Select crypt "
 select ENTRY in $(lsblk -pnr | grep -P "crypt" | awk '{ print $1 }');
 do
     CRYPT=$ENTRY
