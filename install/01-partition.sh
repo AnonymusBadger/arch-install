@@ -28,7 +28,7 @@ choice() {
             ;;
         n ) IS_BOOT=false
             ;;
-        * ) print "You did not enter a valid response"
+        * ) echo "You did not enter a valid response"
             choice
     esac
 }
