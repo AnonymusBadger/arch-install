@@ -38,7 +38,7 @@ if [ -z "$IS_BOOT" ]; then
     choice
 fi
 
-if [ IS_BOOT ]
+if $IS_BOOT
     then
         makeBoot
     else
