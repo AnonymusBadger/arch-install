@@ -6,7 +6,7 @@ DRIVE=  # /dev/vda for qemu, /dev/sda for VirtualBox
 IS_BOOT= # true / false
 
 if [ -z "$DRIVE" ]; then
-    read -r -p "Please choose the drive: " PART
+    read -r -p "Please choose the drive: " DRIVE
 fi
 
 makeBoot() {
