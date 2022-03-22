@@ -5,10 +5,6 @@
 DRIVE=  # /dev/vda for qemu, /dev/sda for VirtualBox
 IS_BOOT= # true / false
 
-if [ -z "$DRIVE" ]; then
-    read -r -p "Please choose the drive: " DRIVE
-fi
-
 makeBoot() {
     parted "$DRIVE" mklabel gpt
     parted "$DRIVE" mkpart ESP fat32 1MiB 512MiB
@@ -32,6 +28,10 @@ choice() {
             choice
     esac
 }
+
+if [ -z "$DRIVE" ]; then
+    read -r -p "Please choose the drive: " DRIVE
+fi
 
 if [ -z "$IS_BOOT" ]; then
     choice
