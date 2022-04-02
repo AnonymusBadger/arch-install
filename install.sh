@@ -14,7 +14,7 @@ pacman -Syu
 
 
 # Selecting boot drive
-local PS3="Select the disk "
+PS3="Select the disk "
 select ENTRY in $(lsblk -dpnoNAME | grep -P "/dev/sd|nvme|vd");
 do
     DRIVE=$ENTRY
@@ -23,7 +23,7 @@ done
 
 # Wiping the drive
 read -r -p "This will delete the current partition table on $DRIVE. Do you agree [y/N]? " response
-local response=${response,,}
+response=${response,,}
 if [[ "$response" =~ ^(yes|y)$ ]]; then
     wipefs -af "$DRIVE" &>/dev/null
     sgdisk -Zo "$DRIVE" &>/dev/null
@@ -38,7 +38,7 @@ parted -s "$DRIVE" \
     mklabel gpt \
     mkpart ESP fat32 1MiB 101MiB \
     set 1 esp on
-local ESP="/dev/disk/by-partlabel/ESP"
+ESP="/dev/disk/by-partlabel/ESP"
 
 echo "Creating new primary partition on $DRIVE."
 parted "$DRIVE" mkpart primary 101MiB 100%
