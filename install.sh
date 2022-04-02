@@ -14,23 +14,19 @@ pacman -Syu
 
 
 # Selecting boot drive
-PS3="Select the disk "
+fdisk -l
+echo ""
+
+PS3="Select the drive"
 select ENTRY in $(lsblk -dpnoNAME | grep -P "/dev/sd|nvme|vd");
 do
     DRIVE=$ENTRY
     break
 done
 
-# Wiping the drive
-read -r -p "This will delete the current partition table on $DRIVE. Do you agree [y/N]? " response
-response=${response,,}
-if [[ "$response" =~ ^(yes|y)$ ]]; then
-    wipefs -af "$DRIVE" &>/dev/null
-    sgdisk -Zo "$DRIVE" &>/dev/null
-    return 0
-else
-    echo "Quitting."
-fi
+echo "\nWiping the drive"
+wipefs -af "$DRIVE" &>/dev/null
+sgdisk -Zo "$DRIVE" &>/dev/null
 
 # Creating a new partition scheme.
 echo "Creating new boot partition on $DRIVE."
