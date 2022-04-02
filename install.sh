@@ -29,9 +29,10 @@ wipeDrive() {
     if [[ "$response" =~ ^(yes|y)$ ]]; then
         wipefs -af "$DRIVE" &>/dev/null
         sgdisk -Zo "$DRIVE" &>/dev/null
+        return 0
     else
         echo "Quitting."
-        exit
+        return 1
     fi
 }
 
@@ -39,6 +40,9 @@ makeBootDrive() {
     local DRIVE=$(selectDisk)
 
     wipeDrive $DRIVE
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
 
     # Creating a new partition scheme.
     echo "Creating new boot partition on $DRIVE."
@@ -58,4 +62,17 @@ makeBootDrive() {
     # Formatting the ESP as FAT32.
     echo "Formatting the EFI Partition as FAT32."
     mkfs.vfat $ESP &>/dev/null
+
+    return 0
 }
+
+
+# Drive creator loop
+while True:
+    clear
+    echo "Select your boot drive\n"
+
+    makeBootDrive
+    if [ $? -eq 0 ]; then
+        break
+    fi
