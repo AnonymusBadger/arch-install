@@ -7,14 +7,55 @@ clear
 timedatectl set-ntp true
 timedatectl set-timezone Europe/Warsaw
 
-#update live env
+# update live env
 pacman -Syu
 
+# Functions definitions
+
 selectDisk() {
-    PS3="Select the disk "
-    select ENTRY in $(lsblk -dpnoNAME|grep -P "/dev/sd|nvme|vd");
+    local ENTRY
+    local PS3="Select the disk "
+    select ENTRY in $(lsblk -dpnoNAME | grep -P "/dev/sd|nvme|vd");
     do
-        DISK=$ENTRY
+        echo $ENTRY
         break
     done
+}
+
+wipeDrive() {
+    local DRIVE=$1
+    read -r -p "This will delete the current partition table on $DRIVE. Do you agree [y/N]? " response
+    local response=${response,,}
+    if [[ "$response" =~ ^(yes|y)$ ]]; then
+        wipefs -af "$DRIVE" &>/dev/null
+        sgdisk -Zo "$DRIVE" &>/dev/null
+    else
+        echo "Quitting."
+        exit
+    fi
+}
+
+makeBootDrive() {
+    local DRIVE=$(selectDisk)
+
+    wipeDrive $DRIVE
+
+    # Creating a new partition scheme.
+    echo "Creating new boot partition on $DRIVE."
+    parted -s "$DRIVE" \
+        mklabel gpt \
+        mkpart ESP fat32 1MiB 101MiB \
+        set 1 esp on
+    local ESP="/dev/disk/by-partlabel/ESP"
+
+    echo "Creating new primary partition on $DRIVE."
+    parted "$DRIVE" mkpart primary 101MiB 100%
+
+    # Informing the Kernel of the changes.
+    echo "Informing the Kernel about the disk changes."
+    partprobe "$DRIVE"
+
+    # Formatting the ESP as FAT32.
+    echo "Formatting the EFI Partition as FAT32."
+    mkfs.vfat $ESP &>/dev/null
 }
