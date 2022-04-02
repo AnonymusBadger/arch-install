@@ -14,17 +14,19 @@ pacman -Syu
 
 
 # Selecting boot drive
+clear
 fdisk -l
-echo ""
+echo
 
-PS3="Select the drive"
+PS3="Select the drive "
 select ENTRY in $(lsblk -dpnoNAME | grep -P "/dev/sd|nvme|vd");
 do
     DRIVE=$ENTRY
     break
 done
 
-echo "\nWiping the drive"
+echo
+echo "Wiping the drive"
 wipefs -af "$DRIVE" &>/dev/null
 sgdisk -Zo "$DRIVE" &>/dev/null
 
@@ -35,14 +37,18 @@ parted -s "$DRIVE" \
     mkpart ESP fat32 1MiB 101MiB \
     set 1 esp on
 ESP="/dev/disk/by-partlabel/ESP"
+echo "Informing the Kernel about the disk changes."
+partprobe "$DRIVE"
 
 echo "Creating new primary partition on $DRIVE."
 parted "$DRIVE" mkpart primary 101MiB 100%
-
-# Informing the Kernel of the changes.
+PRIMARY="/dev/disk/by-partlabel/primary"
 echo "Informing the Kernel about the disk changes."
 partprobe "$DRIVE"
 
 # Formatting the ESP as VFAT.
 echo "Formatting the EFI Partition."
 mkfs.vfat $ESP &>/dev/null
+
+echo "Formatting the Priamry Partition."
+mkfs.btrfs -L ARCH $PRIMARY
