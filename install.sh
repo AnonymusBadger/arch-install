@@ -1,19 +1,18 @@
 #!/usr/bin/env -S bash -e
 
+# Cd to script directory
+cd "$(dirname "$0")"
+
 # Clean the TTY
 clear
 
-# Load localized kayboard layout
-loadkeys pl
-setfont Lat2-Terminus16.psfu.gz -m 8859-2
+/bin/bash ./src/00-setup.sh
+source ./src/01-00-select-disk.sh
+/bin/bash ./src/01-01-wipe.sh
 
-# Network config
+exit
 
-# Set up system clock
-timedatectl set-ntp true
-timedatectl set-timezone Europe/Warsaw
-
-### Drive and part creation ###
+### Drive and partition creation ###
 clear
 # Selecting boot drive
 fdisk -l
@@ -108,6 +107,10 @@ arch-chroot /mnt /bin/bash -e <<EOF
     # Installing GRUB.
     echo "Installing GRUB on /boot."
     grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB  &>/dev/null
+
+    # Creating grub config file.
+    echo "Creating GRUB config file."
+    grub-mkconfig -o /boot/grub/grub.cfg &>/dev/null
 EOF
 
 # Setting root password.
