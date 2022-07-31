@@ -57,18 +57,18 @@ mkfs.ext4 -L ARCH $PRIMARY &>/dev/null
 
 # Make sure nothing is mounted on /mnt
 echo "Mounting new file system"
-umount -R /mnt
+# umount -Rq /mnt
 
 mount $PRIMARY /mnt
 mount -m -o noexec,nodev,nosuid $ESP /mnt/boot
 
+echo "Updating keyring"
+pacman -Sy archlinux-keyring --noconfirm
+sed -i 's/#ParallelDownloads = 5/ParallelDownloads = 10/g' /etc/pacman.conf
+sed -i 's/#ParallelDownloads = 5/ParallelDownloads = 10/g' /mnt/etc/pacman.conf
+sed -i 's/#Color = 5/Color/g' /mnt/etc/pacman.conf
 echo "Installing the base system (it may take a while)."
-pacstrap /mnt base linux-zen intel-ucode linux-firmware sof-firmware \
-    e2fsprogs \
-    grub efibootmgr \
-    nvim \
-    man-db man-pages texinfo \
-    sudo
+pacstrap /mnt base linux-zen intel-ucode linux-firmware sof-firmware e2fsprogs grub efibootmgr nvim man-db man-pages texinfo sudo
 
 echo "Generating a new fstab."
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -107,10 +107,11 @@ arch-chroot /mnt /bin/bash -e <<EOF
     # Installing GRUB.
     echo "Installing GRUB on /boot."
     grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB  &>/dev/null
-
-    echo "Setting root password"
-    passwd
 EOF
+
+# Setting root password.
+echo "Setting root password."
+arch-chroot /mnt /bin/passwd
 
 echo "Unmounting new filesystem"
 umount -R /mnt
