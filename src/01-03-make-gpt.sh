@@ -8,7 +8,4 @@ else
     DISK=$1
 fi
 
-wipefs -af "$DISK" &
->/dev/null
-sgdisk -Zo "$DISK" &
->/dev/null
+parted -s "$DISK" mklabel gpt

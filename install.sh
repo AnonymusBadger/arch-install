@@ -6,30 +6,47 @@ cd "$(dirname "$0")"
 # Clean the TTY
 clear
 
-/bin/bash ./src/00-setup.sh
-source ./src/01-00-select-disk.sh
-/bin/bash ./src/01-01-wipe.sh
-
-exit
+# Setup live env
+# /bin/bash ./src/00-setup.sh
 
 ### Drive and partition creation ###
-clear
-# Selecting boot drive
+/bin/bash ./src/01-04-make-efi.sh
+exit
+# Select disk
 fdisk -l
 echo
+DISK=$(/bin/bash ./src/01-00-select-disk.sh)
 
-PS3="Select the drive "
-select ENTRY in $(lsblk -dpnoNAME | grep -P "/dev/sd|nvme|vd");
-do
-    DRIVE=$ENTRY
-    break
-done
+# Wiping table
+read -r -p "This will delete the current partition table on $DISK. Do you agree [y/N]? " response
+response=${response,,}
+if [[ "$response" =~ ^(yes|y)$ ]]; then
+    /bin/bash ./src/01-01-wipe.sh $DISK
+else
+    echo "Quitting."
+    exit
+fi
 
-# Wipe the drive
-echo "Wiping the drive"
-wipefs -af "$DRIVE" &>/dev/null
-sgdisk -Zo "$DRIVE" &>/dev/null
-# dd if=/dev/urandom of=$DRIVE bs=4M status=progress
+# Writing random bytes to the disk
+read -r -p "Do you wish to write random bytes to the $DISK. [y/N]? " response
+response=${response,,}
+if [[ "$response" =~ ^(yes|y)$ ]]; then
+    /bin/bash ./src/01-02-randomize.sh $DISK
+fi
+
+# Partitioning
+BOOTSIZE=512
+
+echo "Creating new partition scheme on $DISK."
+echo "Creating new boot partition on $DISK."
+EFI=$(/bin/bash ./src/01-03-make-gpt.sh $DISK $BOOTSIZE)
+
+read -r -p "Encrypt primary partition? [y/N] " response
+response=${response,,}
+if [[ "$response" =~ ^(yes|y)$ ]]; then
+fi
+
+exit
 
 # Creating a new partition scheme.
 echo "Creating new partition scheme on $DRIVE."

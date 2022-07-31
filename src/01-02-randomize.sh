@@ -8,7 +8,4 @@ else
     DISK=$1
 fi
 
-wipefs -af "$DISK" &
->/dev/null
-sgdisk -Zo "$DISK" &
->/dev/null
+dd if=/dev/urandom of=$DRIVE bs=4M status=progress

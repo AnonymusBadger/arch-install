@@ -20,24 +20,6 @@ makePartitions() {
 
     # Formatting the ESP as FAT32.
     echo "Formatting the EFI Partition as FAT32."
-    mkfs.fat -F 32 $ESP &>/dev/null
+    mkfs.fat -F 32 $ESP &
+    >/dev/null
 }
-
-# Selecting the disk
-PS3="Select the disk "
-select ENTRY in $(lsblk -dpnoNAME|grep -P "/dev/sd|nvme|vd");
-do
-    DISK=$ENTRY
-    break
-done
-
-# Deleting old partition scheme.
-read -r -p "This will delete the current partition table on $DISK. Do you agree [y/N]? " response
-response=${response,,}
-if [[ "$response" =~ ^(yes|y)$ ]]; then
-    wipefs -af "$DISK" &>/dev/null
-    sgdisk -Zo "$DISK" &>/dev/null
-else
-    echo "Quitting."
-    exit
-fi
