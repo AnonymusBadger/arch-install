@@ -56,16 +56,16 @@ mount $BTRFS /mnt
 # Creating BTRFS subvolumes.
 echo "Creating BTRFS subvolumes."
 btrfs sub create /mnt/@
-btrfs sub create /mnt/@/home
-btrfs sub create /mnt/@/boot/
-btrfs sub create /mnt/@/opt
-btrfs sub create /mnt/@/root
-btrfs sub create /mnt/@/srv
-btrfs sub create /mnt/@/tmp
-btrfs sub create /mnt/@/usr/local
-btrfs sub create /mnt/@/var
-btrfs sub create /mnt/@/swap
-btrfs sub create /mnt/@/snapshots
+btrfs sub create /mnt/@home
+btrfs sub create /mnt/@boot
+btrfs sub create /mnt/@opt
+btrfs sub create /mnt/@root
+btrfs sub create /mnt/@srv
+btrfs sub create /mnt/@tmp
+btrfs sub create /mnt/@usr_local
+btrfs sub create /mnt/@var
+btrfs sub create /mnt/@swap
+btrfs sub create /mnt/@snapshots
 
 # Make sure nothing is mounted on /mnt
 echo "Mounting new file system"
