@@ -65,10 +65,11 @@ mount -m -o noexec,nodev,nosuid $ESP /mnt/boot
 echo "Updating keyring"
 pacman -Sy archlinux-keyring --noconfirm
 sed -i 's/#ParallelDownloads = 5/ParallelDownloads = 10/g' /etc/pacman.conf
-sed -i 's/#ParallelDownloads = 5/ParallelDownloads = 10/g' /mnt/etc/pacman.conf
-sed -i 's/#Color = 5/Color/g' /mnt/etc/pacman.conf
 echo "Installing the base system (it may take a while)."
 pacstrap /mnt base linux-zen intel-ucode linux-firmware sof-firmware e2fsprogs grub efibootmgr nvim man-db man-pages texinfo sudo
+
+sed -i 's/#ParallelDownloads = 5/ParallelDownloads = 10/g' /mnt/etc/pacman.conf
+sed -i 's/#Color = 5/Color/g' /mnt/etc/pacman.conf
 
 echo "Generating a new fstab."
 genfstab -U /mnt >> /mnt/etc/fstab
