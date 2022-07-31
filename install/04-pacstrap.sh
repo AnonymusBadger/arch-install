@@ -30,12 +30,12 @@ fi
 
 # Pacstrap (setting up a base sytem onto the new root).
 echo "Installing the base system (it may take a while)."
-pacstrap /mnt base ${kernel} ${microcode} linux-firmware grub grub-btrfs snapper efibootmgr sudo networkmanager nvim reflector man-db
+pacstrap /mnt base base-devel ${kernel} ${microcode} linux-firmware grub grub-btrfs snapper efibootmgr sudo networkmanager neovim reflector man-db mkinitcpio
 
 # Generating /etc/fstab.
 echo "Generating a new fstab."
 genfstab -U /mnt >> /mnt/etc/fstab
-sed -i 's#,subvolid=258,subvol=/@/.snapshots/1/snapshot,subvol=@/.snapshots/1/snapshot##g' /mnt/etc/fstab
+# sed -i 's#,subvolid=258,subvol=/@/.snapshots/1/snapshot,subvol=@/.snapshots/1/snapshot##g' /mnt/etc/fstab
 
 # Setting hostname.
 read -r -p "Please enter the hostname: " hostname
@@ -50,6 +50,11 @@ cat > /mnt/etc/hosts <<EOF
 EOF
 
 # Setting up locales.
-read -r -p "Please insert the locale you use in this format (xx_XX): " locale
-echo "$locale.UTF-8 UTF-8"  > /mnt/etc/locale.gen
-echo "LANG=$locale.UTF-8" > /mnt/etc/locale.conf
+echo "en_US.UTF-8 UTF-8\npl_PL.UTF-8 UTF-8"  > /mnt/etc/locale.gen
+echo "LANG=en_US.UTF-8" > /mnt/etc/locale.conf
+
+# Adding keyfile to the initramfs to avoid double password.
+dd bs=512 count=4 if=/dev/random of=/mnt/cryptkey/root.key iflag=fullblock &>/dev/null
+chmod 000 /mnt/cryptkey/root.key &>/dev/null
+cryptsetup -v luksAddKey /dev/sda2 /mnt/cryptkey/root.key
+sed -i 's#FILES=()#FILES=(/cryptkey/root.key)#g' /mnt/etc/mkinitcpio.conf
