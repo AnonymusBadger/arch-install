@@ -32,7 +32,7 @@ parted -s "$DISK" \
     set 1 esp on \
     mkpart crypt 513MiB 100%
 
-EFI="/dev/disk/by-partlabel/ESP"
+EFI="/dev/disk/by-partlabel/EFI"
 crypt="/dev/disk/by-partlabel/crypt"
 
 echo "Informing the Kernel about the disk changes."
