@@ -30,7 +30,7 @@ done
 echo "Wiping the drive"
 wipefs -af "$DRIVE" &>/dev/null
 sgdisk -Zo "$DRIVE" &>/dev/null
-# dd if=/dev/zero of=$DRIVE bs=4M status=progress
+# dd if=/dev/urandom of=$DRIVE bs=4M status=progress
 
 # Creating a new partition scheme.
 echo "Creating new partition scheme on $DRIVE."
@@ -52,3 +52,65 @@ mkfs.vfat -n EFI $ESP &>/dev/null
 
 echo "Formatting the Priamry Partition."
 mkfs.ext4 -L ARCH $PRIMARY &>/dev/null
+
+# Mount newly created filesystem
+
+# Make sure nothing is mounted on /mnt
+echo "Mounting new file system"
+umount -R /mnt
+
+mount $PRIMARY /mnt
+mount -m -o noexec,nodev,nosuid $ESP /mnt/boot
+
+echo "Installing the base system (it may take a while)."
+pacstrap /mnt base linux-zen intel-ucode linux-firmware sof-firmware \
+    e2fsprogs \
+    grub efibootmgr \
+    nvim \
+    man-db man-pages texinfo \
+    sudo
+
+echo "Generating a new fstab."
+genfstab -U /mnt >> /mnt/etc/fstab
+
+# Setting hostname.
+read -r -p "Please enter the hostname: " hostname
+echo "$hostname" > /mnt/etc/hostname
+
+# Setting hosts file.
+echo "Setting hosts file."
+cat > /mnt/etc/hosts <<EOF
+127.0.0.1   localhost
+::1         localhost
+127.0.1.1   $hostname.localdomain   $hostname
+EOF
+
+# Setting up locales.
+echo "en_US.UTF-8 UTF-8"  > /mnt/etc/locale.gen
+echo "LANG=en_US.UTF-8" > /mnt/etc/locale.conf
+
+# Setting up keyboard layout.
+# echo "KEYMAP=en" > /mnt/etc/vconsole.conf
+
+# Configuring the system.
+arch-chroot /mnt /bin/bash -e <<EOF
+    # Setting up timezone.
+    ln -sf /usr/share/zoneinfo/Europe/Warsaw /etc/localtime &>/dev/null
+
+    # Setting up clock.
+    hwclock --systohc
+
+    # Generating locales.my keys aren't even on
+    echo "Generating locales."
+    locale-gen &>/dev/null
+
+    # Installing GRUB.
+    echo "Installing GRUB on /boot."
+    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB  &>/dev/null
+
+    echo "Setting root password"
+    passwd
+EOF
+
+echo "Unmounting new filesystem"
+umount -R /mnt
