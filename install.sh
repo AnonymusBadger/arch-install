@@ -3,9 +3,6 @@
 # Clean the TTY
 clear
 
-# Update the live environment
-pacman -Syu
-
 # Load localized kayboard layout
 loadkeys pl
 setfont Lat2-Terminus16.psfu.gz -m 8859-2
