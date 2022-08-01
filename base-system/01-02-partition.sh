@@ -8,8 +8,7 @@ parted -s "$DISK" \
     mklabel gpt \
     mkpart "$ESP_LABEL" fat32 1MiB "${BOOTSIZE}MiB" \
     set 1 esp on \
-    mkpart "$PRIMARY_LABEL" "${BOOTSIZE}MiB" 100% &
->/dev/null
+    mkpart "$PRIMARY_LABEL" "${BOOTSIZE}MiB" 100% &>/dev/null
 
 partprobe "$DISK"
 sleep 1 # Sleep to changes to register

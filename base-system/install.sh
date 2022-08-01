@@ -25,8 +25,7 @@ PRIMARY="/dev/disk/by-partlabel/primary"
 # Creating BTRFS subvolumes.
 echo "Creating BTRFS subvolumes."
 mount $PRIMARY /mnt
-btrfs sub create /mnt/@ &
->/dev/null
+btrfs sub create /mnt/@ &>/dev/null
 umount -R /mnt
 
 echo "Mounting the newly created subvolumes."
