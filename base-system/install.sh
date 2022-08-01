@@ -7,7 +7,6 @@ clear
 echo "Setting time zone"
 timedatectl set-ntp true &>/dev/null
 timedatectl set-timezone Europe/Warsaw &>/dev/null
-pacman -Syy && pacman-key --refresh-keys
 
 echo "Updating keyring"
 sed -i 's/#ParallelDownloads = 5/ParallelDownloads = 10/g' /etc/pacman.conf &>/dev/null
