@@ -7,6 +7,7 @@ clear
 echo "Setting time zone"
 timedatectl set-ntp true &>/dev/null
 timedatectl set-timezone Europe/Warsaw &>/dev/null
+pacman -Syy && pacman-key --refresh-keys
 
 echo "Updating keyring"
 sed -i 's/#ParallelDownloads = 5/ParallelDownloads = 10/g' /etc/pacman.conf &>/dev/null
@@ -68,58 +69,17 @@ echo "Mounting the newly created subvolumes."
 mount $PRIMARY /mnt
 mount -m $EFI /mnt/boot
 
-pacstrap /mnt base linux-zen intel-ucode linux-firmware sof-firmware grub efibootmgr neovim man-db man-pages texinfo sudo  btrfs-progs
+pacstrap /mnt base linux-zen intel-ucode linux-firmware sof-firmware neovim man-db man-pages texinfo sudo git zsh
 
 # Change pacman.conf
 sed -i 's/#ParallelDownloads = 5/ParallelDownloads = 10/g' /mnt/etc/pacman.conf
 sed -i 's/#Color = 5/Color/g' /mnt/etc/pacman.conf
 
 # echo "Generating a new fstab."
-genfstab -U /mnt >>/mnt/etc/fstab
+echo "Generating fstab"
+genfstab -U /mnt >>/mnt/etc/fstab &>/dev/null
 
-# # Setting hostname.
-read -r -p "Please enter the hostname: " hostname
-echo "$hostname" >/mnt/etc/hostname
-
-# Setting hosts file.
-echo "Setting hosts file."
-cat >/mnt/etc/hosts <<EOF
-127.0.0.1   localhost
-::1         localhost
-127.0.1.1   $hostname.localdomain   $hostname
-EOF
-
-# Setting up locales.
-echo "Setting locale"
-sed -i 's/#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g' /mnt/etc/pacman.conf
-sed -i 's/#pl_PL.UTF-8 UTF-8/pl_PL.UTF-8 UTF-8/g' /mnt/etc/pacman.conf
-echo "LANG=en_US.UTF-8" >/mnt/etc/locale.conf
-
-# Configuring the system.
-echo "Configuring chroot environment"
+echo "Installing arch-install scripts"
 arch-chroot /mnt /bin/bash -e <<EOF
-    # Setting up timezone.
-    ln -sf /usr/share/zoneinfo/Europe/Warsaw /etc/localtime &>/dev/null
-
-    # Setting up clock.
-    hwclock --systohc
-
-    # Generating locales.
-    echo "Generating locales."
-    locale-gen &>/dev/null
-
-    # Installing GRUB.
-    echo "Installing GRUB on /boot."
-    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB  &>/dev/null
-
-    # Creating grub config file.
-    echo "Creating GRUB config file."
-    grub-mkconfig -o /boot/grub/grub.cfg &>/dev/null
+    git clone --depth=1 https://github.com/AnonymusBadger/arch-install.git
 EOF
-
-# Setting root password.
-echo "Setting root password."
-arch-chroot /mnt /bin/passwd
-
-echo "Unmounting new filesystem"
-umount -R /mnt
