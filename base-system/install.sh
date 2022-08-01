@@ -68,15 +68,29 @@ echo "Mounting the newly created subvolumes."
 mount $PRIMARY /mnt
 mount -m $EFI /mnt/boot/efi
 
-pacstrap /mnt base linux-zen intel-ucode linux-firmware sof-firmware neovim man-db man-pages texinfo git zsh
+pacstrap /mnt base linux-zen intel-ucode linux-firmware sof-firmware neovim man-db man-pages texinfo git zsh sudo
 
 # echo "Generating a new fstab."
 echo "Generating fstab"
 genfstab -U /mnt >>/mnt/etc/fstab &>/dev/null
 
-echo "Installing arch-install scripts"
+# Setting root password.
+echo "Setting root password."
+arch-chroot /mnt /bin/passwd
+
+# Create new user.
+read -r -p "Please enter name for a user account: " username
 arch-chroot /mnt /bin/bash -e <<EOF
-    git clone --depth=1 https://github.com/AnonymusBadger/arch-install.git
+    echo "Adding $username with root privilege."
+    useradd -m $username
+    usermod -aG wheel $username
+    usermod --shell /bin/zsh $username
+
+    echo "Installing arch-install scripts"
+    git clone --depth=1 https://github.com/AnonymusBadger/arch-install.git ~$username
 EOF
+
+echo "Setting password for $username."
+arch-chroot /mnt /bin/passwd "$username"
 
 arch-chroot /mnt
