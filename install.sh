@@ -56,11 +56,11 @@ echo "Formatting the EFI Partition."
 mkfs.vfat -n EFI $EFI &>/dev/null
 
 echo "Formatting the primary partition."
-mkfs.btrfs -L ROOT -n 32k $BTRFS
+mkfs.btrfs -L ROOT -n 32k $PRIMARY
 
 # Creating BTRFS subvolumes.
 echo "Creating BTRFS subvolumes."
-mount $BTRFS /mnt
+mount $PRIMARY /mnt
 btrfs sub create /mnt/@ &>/dev/null
 umount -R /mnt
 
