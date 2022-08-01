@@ -107,7 +107,7 @@ arch-chroot /mnt /bin/bash -e <<EOF
     echo "Setting up localization"
     sed -i 's/#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g' /etc/pacman.conf
     sed -i 's/#pl_PL.UTF-8 UTF-8/pl_PL.UTF-8 UTF-8/g' /etc/pacman.conf
-    echo "LANG=en_US.UTF-8" >/mnt/etc/locale.conf
+    echo "LANG=en_US.UTF-8" >/etc/locale.conf
 
     # Generating locales.
     locale-gen &
