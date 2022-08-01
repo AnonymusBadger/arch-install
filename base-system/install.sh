@@ -7,6 +7,10 @@ clear
 # Setup live env
 /bin/bash ./00-setup.sh
 
+# Select disk
+fdisk -l
+echo
+
 DISK=$(/bin/bash ./01-00-disk-select.sh)
 
 # Wipe the drive
