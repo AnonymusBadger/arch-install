@@ -31,3 +31,8 @@ cat >/etc/hosts <<EOF
 ::1         localhost
 127.0.1.1   $hostname.localdomain   $hostname
 EOF
+
+# Change pacman.conf
+echo "Seting up pacman"
+sed -i 's/#ParallelDownloads = 5/ParallelDownloads = 10/g' /mnt/etc/pacman.conf
+sed -i 's/#Color = 5/Color/g' /mnt/etc/pacman.conf

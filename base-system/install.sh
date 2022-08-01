@@ -67,13 +67,9 @@ umount -R /mnt
 
 echo "Mounting the newly created subvolumes."
 mount $PRIMARY /mnt
-mount -m $EFI /mnt/boot
+mount -m $EFI /mnt/boot/efi
 
-pacstrap /mnt base linux-zen intel-ucode linux-firmware sof-firmware neovim man-db man-pages texinfo sudo git zsh
-
-# Change pacman.conf
-sed -i 's/#ParallelDownloads = 5/ParallelDownloads = 10/g' /mnt/etc/pacman.conf
-sed -i 's/#Color = 5/Color/g' /mnt/etc/pacman.conf
+pacstrap /mnt base linux-zen intel-ucode linux-firmware sof-firmware neovim man-db man-pages texinfo git zsh
 
 # echo "Generating a new fstab."
 echo "Generating fstab"
@@ -83,3 +79,5 @@ echo "Installing arch-install scripts"
 arch-chroot /mnt /bin/bash -e <<EOF
     git clone --depth=1 https://github.com/AnonymusBadger/arch-install.git
 EOF
+
+arch-chroot /mnt
