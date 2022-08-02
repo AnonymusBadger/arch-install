@@ -23,7 +23,7 @@ DISK=$(/bin/bash ./01-00-disk-select.sh)
 EFI="/dev/disk/by-partlabel/EFI"
 CRYPT="/dev/disk/by-partlabel/crypt"
 
-/bin/bash ./01-03-make-luks.sh
+/bin/bash ./01-03-make-luks.sh $CRYPT
 
 CRYPT="/dev/mapper/crypt"
 
