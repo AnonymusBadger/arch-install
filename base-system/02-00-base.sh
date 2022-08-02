@@ -24,6 +24,8 @@ sed -i 's/#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g' /mnt/etc/pacman.conf
 sed -i 's/#pl_PL.UTF-8 UTF-8/pl_PL.UTF-8 UTF-8/g' /mnt/etc/pacman.conf
 echo "LANG=en_US.UTF-8" >/mnt/etc/locale.conf
 
+echo "%wheel ALL=(ALL) ALL" >/etc/sudoers.d/wheel
+
 arch-chroot /mnt /bin/bash -e <<EOF
     echo "Setting up timezone"
     # Setting up timezone.
