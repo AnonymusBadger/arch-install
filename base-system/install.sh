@@ -25,10 +25,10 @@ CRYPT="/dev/disk/by-partlabel/crypt"
 
 /bin/bash ./01-03-make-luks.sh $CRYPT
 
-CRYPT="/dev/mapper/crypt"
-
 echo "Opening the newly created LUKS Container."
 cryptsetup open "$CRYPT" crypt
+
+CRYPT="/dev/mapper/crypt"
 
 # Formatting drives.
 /bin/bash ./01-03-format.sh $EFI $CRYPT
