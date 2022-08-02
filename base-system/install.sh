@@ -31,7 +31,7 @@ cryptsetup open "$CRYPT" crypt
 CRYPT="/dev/mapper/crypt"
 
 # Formatting drives.
-/bin/bash ./01-03-format.sh $EFI $CRYPT
+/bin/bash ./01-04-format.sh $EFI $CRYPT
 
 echo "Mounting the newly created subvolumes."
 mount $CRYPT /mnt
