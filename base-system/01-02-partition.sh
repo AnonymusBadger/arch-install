@@ -2,7 +2,7 @@
 DISK=$1
 BOOTSIZE=513
 ESP_LABEL="EFI"
-PRIMARY_LABEL="primary"
+PRIMARY_LABEL="crypt"
 
 parted -s "$DISK" \
     mklabel gpt \

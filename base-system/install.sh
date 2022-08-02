@@ -21,19 +21,20 @@ DISK=$(/bin/bash ./01-00-disk-select.sh)
 
 # Creating a new partition scheme.
 EFI="/dev/disk/by-partlabel/EFI"
-PRIMARY="/dev/disk/by-partlabel/primary"
+CRYPT="/dev/disk/by-partlabel/crypt"
+
+/bin/bash ./01-03-make-luks.sh
+
+CRYPT="/dev/mapper/crypt"
+
+echo "Opening the newly created LUKS Container."
+cryptsetup open "$CRYPT" crypt
 
 # Formatting drives.
-/bin/bash ./01-03-format.sh $EFI $PRIMARY
-
-# Creating BTRFS subvolumes.
-echo "Creating BTRFS subvolumes."
-mount $PRIMARY /mnt
-btrfs sub create /mnt/@ &>/dev/null
-umount -R /mnt
+/bin/bash ./01-03-format.sh $EFI $CRYPT
 
 echo "Mounting the newly created subvolumes."
-mount $PRIMARY /mnt
+mount $CRYPT /mnt
 mount -m $EFI /mnt/boot/efi
 
 pacstrap /mnt base linux-zen intel-ucode linux-firmware sof-firmware neovim man-db man-pages texinfo git zsh sudo
