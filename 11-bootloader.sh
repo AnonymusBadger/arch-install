@@ -5,7 +5,7 @@ CONF_DIR="$EFI_MOUNT_DIR/EFI/refind"
 BACKUP_CONF_PATH="$CONF_DIR/refind.conf.bak"
 
 # Install rEFInd and drivers
-pacman -S --needed refind
+pacman -S --needed refind | yes
 refind-install
 
 # Backup existing configuration
@@ -48,3 +48,7 @@ cat > "/boot/refind_linux.conf" <<EOF
 EOF
 
 echo "rEFInd setup completed successfully."
+echo "refind.conf"
+cat "$CONF_DIR/refind.conf"
+echo "refind_linux.conf"
+cat /boot/refind_linux.conf

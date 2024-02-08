@@ -12,4 +12,4 @@ usermod --shell /bin/zsh $username
 passwd "$username"
 
 echo "Installing arch-install scripts" 
-git clone --depth=1 https://github.com/AnonymusBadger/arch-install.git ~$username/arch-install
+git clone --depth=1 https://github.com/AnonymusBadger/arch-install.git "/home/$username/arch-install"
