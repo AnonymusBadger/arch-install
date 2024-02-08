@@ -79,13 +79,12 @@ umount -R /mnt
 
 # Mounting ===================================================================================
 echo "Mounting new partitions..."
-mount_options="defaults,x-mount.mkdir,discard=async,ssd,noatime,compress=zstd:1"
 
 # Mount Btrfs subvolumes
 mount_btrfs() {
     local subvol=$1
-    local label=$2
-    local mount_point=$4
+    local mount_point=$2
+    local mount_options="defaults,x-mount.mkdir,discard=async,ssd,noatime,compress=zstd:1"
     mount -t btrfs -o subvol="$subvol",$mount_options LABEL="$MAP_NAME" "$mount_point"
 }
 
