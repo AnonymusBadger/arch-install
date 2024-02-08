@@ -4,8 +4,8 @@ pacman -Syy
 passwd
 
 # locale
-sed -i '/^# *en_US.UTF-8/s/^# *//' /mnt/etc/locale.gen
-sed -i '/^# *pl_PL.UTF-8/s/^# *//' /mnt/etc/locale.gen
+sed -i '/^# *en_US.UTF-8/s/^# *//' /etc/locale.gen
+sed -i '/^# *pl_PL.UTF-8/s/^# *//' /etc/locale.gen
 locale-gen
 localectl set-locale LANG=en_US.UTF-8
 
