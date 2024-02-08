@@ -2,6 +2,7 @@
 
 CRYPT="/dev/disk/by-partlabel/crypt"
 
+echo "Creating a new crypt"
 cryptsetup luksFormat \
 	--type luks2 \
 	--cipher twofish-xts-plain64 \
@@ -11,6 +12,7 @@ cryptsetup luksFormat \
 	--hash sha512 \
 	"$CRYPT"
 
+echo "Crypt created, opening"
 cryptsetup \
 	--allow-discards \
 	--persistent \

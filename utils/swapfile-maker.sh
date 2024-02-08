@@ -19,9 +19,9 @@ set_swap_size() {
 read -r -p "Proceed? [Y/n] " response
 response=${response:-Y}
 
+set_swap_size  # Call the function to set the swap size
 if [[ "$response" =~ ^[Yy]$ ]]; then
     echo "Proceeding..."
-    set_swap_size  # Call the function to set the swap size
     read -r -p "Specify swapfile location [/.swap/swapfile]: " swap_path
     swap_path=${swap_path:-'/.swap/swapfile'}
     dd if=/dev/zero of="$swap_path" bs=1M count="$swap_size_mb" status=progress
