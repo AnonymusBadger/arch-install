@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DRIVE=$(./utils/disk-select.sh)
+DISK=$(./utils/disk-select.sh)
 ESP_LABEL="EFI"
 PRIMARY_LABEL="crypt"
 
