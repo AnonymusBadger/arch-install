@@ -66,11 +66,11 @@ cryptsetup \
 
 # Partitioning ===============================================================================
 echo "Partitioning..."
-mkfs.fat -F32 -n "$ESP_LABEL" "/dev/disk/by-partlabel/$EFI_LABEL"
+mkfs.fat -F32 -n "$ESP_LABEL" "/dev/disk/by-partlabel/$ESP_LABEL"
 
 mkfs.btrfs --force --label "$MAP_NAME" "/dev/mapper/$MAP_NAME"
 
-mount -t btrfs LABEL="MAP_NAME" /mnt
+mount -t btrfs LABEL="$MAP_NAME" /mnt
 btrfs subvolume create /mnt/@root
 btrfs subvolume create /mnt/@home
 btrfs subvolume create /mnt/@snapshots
