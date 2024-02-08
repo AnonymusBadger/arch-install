@@ -14,6 +14,8 @@ cryptsetup luksFormat \
 
 echo "Crypt created, opening"
 cryptsetup \
+	--perf-no_read_workqueue \
+	--perf-no_write_workqueue \
 	--allow-discards \
 	--persistent \
 	open "$CRYPT" system

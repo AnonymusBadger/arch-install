@@ -16,7 +16,8 @@ pacstrap /mnt \
        	git \
        	zsh \
        	sudo \
-	btrfs-progs
+	btrfs-progs \
+	dracut
 
 genfstab -L -p /mnt >> /mnt/etc/fstab
 cat /mnt/etc/fstab

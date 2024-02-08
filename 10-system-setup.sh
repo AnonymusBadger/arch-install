@@ -1,6 +1,9 @@
 #!/usr/bin/env bash 
 
-pacman -Syy
+echo "Set root password"
+passwd
+
+pacman -Syy --noconfirm
 
 # locale
 echo "Setting locale"
@@ -23,7 +26,7 @@ echo "127.0.1.1	myhostname.localdomain	$hostname" >> /etc/hosts
 
 # Network
 echo "Setting NetworkManager"
-pacman -S networkmanager iwd | yes
+pacman -S --noconfirm networkmanager iwd
 
 backend_conf_file='/etc/NetworkManager/conf.d/wifi_backend.conf'
 touch $backend_conf_file
