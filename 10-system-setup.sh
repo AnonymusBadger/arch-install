@@ -31,6 +31,6 @@ systemctl enable NetworkManager.service
 
 # iniframs
 echo 'KEYMAP=pl' > /etc/vconsole.conf
-sed -i 's/^HOOKS/HOOKS=(base systemd autodetect modconf kms keyboard sd-vconsole block sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
+sed -i 's/^HOOKS=.*/HOOKS=(base systemd autodetect modconf kms keyboard sd-vconsole block sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
 mkinitcpio -P
 

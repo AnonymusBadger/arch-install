@@ -1,24 +1,37 @@
 #!/usr/bin/env bash 
 
-o=defaults,x-mount.mkdir
-o_btrfs=$o,compress=lzo,ssd,noatime
-o_swap=x-mount.mkdir,space_cache,ssd,discard=async,compress=no
+# Define mount options
+mount_options="defaults,x-mount.mkdir"
+btrfs_mount_options="$mount_options,compress=lzo,ssd,noatime"
+swap_mount_options="x-mount.mkdir,space_cache,ssd,discard=async,compress=no"
 
-mount -t btrfs -o subvol=@root,$o_btrfs LABEL=system /mnt
-mount -t btrfs -o subvol=@home,$o_btrfs LABEL=system /mnt/home
-mount -t btrfs -o subvol=@snapshots,$o_btrfs LABEL=system /mnt/.snapshots
-mount -t btrfs -o subvol=@swap,$o_swap LABEL=system /mnt/.swap
+# Mount Btrfs subvolumes
+mount_btrfs() {
+    local subvol=$1
+    local label=$2
+    local options=$3
+    local mount_point=$4
+    mount -t btrfs -o subvol="$subvol",$options LABEL="$label" "$mount_point"
+}
 
-# makeswap
-SWAP_SIZE=32768
-chattr +C /mnt/.swap
-dd if=/dev/zero of=/mnt/.swap/swapfile bs=1M count=$SWAP_SIZE status=progress
-chmod 0600 /mnt/.swap/swapfile
-mkswap -U clear /mnt/.swap/swapfile
-swapon /mnt/.swap/swapfile
+# Make swap
+make_swap() {
+    chattr +C /mnt/.swap
+    ./utils/swapfile-maker.sh
+}
+
+label="system"
+
+# Mount Btrfs subvolumes
+mount_btrfs "@root" "$label" "$btrfs_mount_options" /mnt
+mount_btrfs "@home" "$label" "$btrfs_mount_options" /mnt/home
+mount_btrfs "@snapshots" "$label" "$btrfs_mount_options" /mnt/.snapshots
+mount_btrfs "@swap" "$label" "$swap_mount_options" /mnt/.swap
+
+# Make swap
+make_swap
 
 #mount efi
-mount --mkdir LABEL=EFI /mnt/efi
+mkdir -p /mnt/boot
+mount LABEL=EFI /mnt/boot
 
-btrfs subvolume list /mnt
-ls /mnt
