@@ -16,10 +16,11 @@ set_swap_size() {
     done
 }
 
+set_swap_size  # Call the function to set the swap size
+
 read -r -p "Proceed? [Y/n] " response
 response=${response:-Y}
 
-set_swap_size  # Call the function to set the swap size
 if [[ "$response" =~ ^[Yy]$ ]]; then
     echo "Proceeding..."
     read -r -p "Specify swapfile location [/.swap/swapfile]: " swap_path
