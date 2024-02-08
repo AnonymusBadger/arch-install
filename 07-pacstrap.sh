@@ -15,7 +15,8 @@ pacstrap /mnt \
        	texinfo \
        	git \
        	zsh \
-       	sudo
+       	sudo \
+	btrfs-progs
 
 genfstab -L -p /mnt >> /mnt/etc/fstab
 cat /mnt/etc/fstab
