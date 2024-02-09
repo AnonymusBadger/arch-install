@@ -1,48 +1,58 @@
 #!/usr/bin/env bash
 
-# script setup
-exec_dir=$(realpath "$(dirname "${BASH_SOURCE[0]}")")
 . "$exec_dir/utils.sh"
 
-# config ====================================================================================
-timezone='Europe/Warsaw'
-keymap='pl'
-locales=( 'en_US.UTF-8' 'pl_PL.UTF-8' )
-
 # Live image setup ==========================================================================
-loadkeys $keymap
+echo "Setting up live system..."
 
-# configure pacman
+loadkeys 'pl'
+timedatectl set-timezone 'Europe/Warsaw'
+
+# Configure pacman
 sed -i '/^#Color/s/^#//' /etc/pacman.conf
 sed -i 's/^#ParallelDownloads = 5/ParallelDownloads = 10/' /etc/pacman.conf
-sed -i '/^#Include = \/etc\/pacman\.d\/mirrorlist/s/^#//' /etc/pacman.conf
+sed -i "/\[multilib]/s/^#//" /etc/pacman.conf
+sed -i "/\[multilib]/{N;s/\n#/\n/}" /etc/pacman.conf
 
-# Sync time =================================================================================
-echo "Setting date and time..."
-timedatectl set-timezone "$timezone"
-timedatectl set-ntp true
+echo "Fetching mirrors..."
+reflector \
+	--download-timeout 2 \ 
+	--save /etc/pacman.d/mirrorlist \ 
+	--protocol https \ 
+	--fastest 20 \ 
+	--age 6 \
+	--sort rate \
+	--country Poland,Germany,France
+	--threads 6
+
+echo "Updating pacman database..."
+pacman -Syy
+
+# Secure wipe ===============================================================================
+# TODO
 
 # Format drive ==============================================================================
-DISK=$(select_disk)
 echo "Formating the drive..."
+
+TARGET_DRIVE=$(select_disk)
+sgdisk --zap-all $TARGET_DRIVE
+
 ESP_LABEL="EFI"
-PRIMARY_LABEL="crypt"
+CRYPT_LABEL="crypt"
+SYSTEM_LABEL="cryptroot"
+ESP_SIZE=1025
 
-sgdisk --zap-all $DRIVE
-
-parted -s "$DISK" \
+parted -s "$TARGET_DRIVE" \
     mklabel gpt \
-    mkpart "$ESP_LABEL" fat32 1MiB "1025MiB" \
+    mkpart "$ESP_LABEL" fat32 1MiB "$ESP_SIZE"MiB \
     set 1 esp on \
-    mkpart "$PRIMARY_LABEL" "1025MiB" 100%
+    mkpart "$CRYPT_LABEL" "$ESP_SIZE"MiB 100%
 
-partprobe "$DISK"
+partprobe "$TARGET_DRIVE"
 sleep 1 # Sleep to changes to register
 
-
 # Crypt setup ================================================================================
-CRYPT="/dev/disk/by-partlabel/crypt"
-MAP_NAME="system"
+CRYPT="/dev/disk/by-partlabel/$CRYPT_LABEL"
 
 echo "Creating a new crypt..."
 cryptsetup luksFormat \
@@ -62,15 +72,15 @@ cryptsetup \
 	--perf-no_write_workqueue \
 	--allow-discards \
 	--persistent \
-	open "$CRYPT" "$MAP_NAME"
+	open "$CRYPT" "$SYSTEM_LABEL"
 
 # Partitioning ===============================================================================
 echo "Partitioning..."
 mkfs.fat -F32 -n "$ESP_LABEL" "/dev/disk/by-partlabel/$ESP_LABEL"
 
-mkfs.btrfs --force --label "$MAP_NAME" "/dev/mapper/$MAP_NAME"
+mkfs.btrfs --label "$SYSTEM_LABEL" "/dev/mapper/$SYSTEM_LABEL"
 
-mount -t btrfs LABEL="$MAP_NAME" /mnt
+mount -t btrfs LABEL="$SYSTEM_LABEL" /mnt
 btrfs subvolume create /mnt/@root
 btrfs subvolume create /mnt/@home
 btrfs subvolume create /mnt/@snapshots
@@ -84,8 +94,8 @@ echo "Mounting new partitions..."
 mount_btrfs() {
     local subvol=$1
     local mount_point=$2
-    local mount_options="defaults,x-mount.mkdir,discard=async,ssd,noatime,compress=zstd:1"
-    mount -t btrfs -o subvol="$subvol",$mount_options LABEL="$MAP_NAME" "$mount_point"
+    local mount_options="defaults,x-systemd.automount,discard=async,ssd,noatime,compress=zstd:1"
+    mount --mkdir -t btrfs -o subvol="$subvol",$mount_options LABEL="$SYSTEM_LABEL" "$mount_point"
 }
 
 # Mount Btrfs subvolumes
@@ -96,12 +106,10 @@ mount_btrfs "@swap" /mnt/.swap
 
 #mount efi
 EFI_MOUNT_DIR="efi"
-mkdir -p "/mnt/$EFI_MOUNT_DIR"
-mount LABEL="$ESP_LABEL" "/mnt/$EFI_MOUNT_DIR"
+mount --mkdir LABEL="$ESP_LABEL" "/mnt/$EFI_MOUNT_DIR"
 
 # Make swap
 echo "Creating swapfile..."
-chattr +C /mnt/.swap
 make_swap /mnt/.swap/swapfile
 
 # Pacstrap ===================================================================================
@@ -110,15 +118,11 @@ pacstrap -P /mnt \
 	base \
        	base-devel \
        	linux-zen \
-       	linux-firmware \
-	linux-headers \
+	linux-zen-headers \
        	intel-ucode \
 	btrfs-progs \
-       	neovim \
-       	man-db \
-       	man-pages \
-       	texinfo \
-       	sudo \
+       	vim \
+       	sado \
 	btrfs-progs \
 	dracut \
 	git
@@ -129,114 +133,6 @@ genfstab -L -p /mnt >> /mnt/etc/fstab
 chattr +C /mnt/tmp
 chattr +C /mnt/var
 
-# Chroot exec ================================================================================
-chroot() {
-    echo "Set root password"
-    passwd
-    echo "Updating pacman..."
-    pacman -Syy --noconfirm
-    echo 'KEYMAP=pl' > /etc/vconsole.conf
-
-    # locale =================================================================================
-    echo "Setting locale..."
-    sed -i '/^# *en_US.UTF-8/s/^# *//' /etc/locale.gen
-    sed -i '/^# *pl_PL.UTF-8/s/^# *//' /etc/locale.gen
-    locale-gen
-    localectl set-locale LANG=en_US.UTF-8
-
-    echo "Setting Time and Date..."
-    # Time and Date ==========================================================================
-    timedatectl set-ntp 1
-    timedatectl set-timezone Europe/Warsaw
-    systemctl enable systemd-timesyncd.service
-    hwclock --systohc
-
-
-    # Hostname ===============================================================================
-    echo "Setting Hostname..."
-    read -r -p "Please enter name system hostname: " hostname
-    hostnamectl set-hostname "$hostname"
-    cat >> /etc/hosts <<EOF
-127.0.0.1	localhost
-::1		localhost
-127.0.1.1	${hostname}
-EOF
-
-    # Network ================================================================================
-    echo "Setting up NetworkManager..."
-    pacman -S --noconfirm networkmanager iwd
-
-    backend_conf_file='/etc/NetworkManager/conf.d/wifi_backend.conf'
-    cat >> $backend_conf_file <<EOF
-[device]
-wifi.backend=iwd
-EOF
-
-    systemctl enable NetworkManager.service
-
-
-    # Bootloader =============================================================================
-    echo "Setting up the bootloader..."
-
-    CONF_DIR="/$EFI_MOUNT_DIR/EFI/refind"
-    BACKUP_CONF_PATH="$CONF_DIR/refind.conf.bak"
-    pacman -S --needed refind | yes
-    refind-install
-
-    # Backup existing configuration
-    if [[ -f "$CONF_DIR/refind.conf" ]]; then
-	mv "$CONF_DIR/refind.conf" "$BACKUP_CONF_PATH"
-	echo "Backup of existing refind.conf created at: $BACKUP_CONF_PATH"
-    fi
-
-    # Generate rEFInd configuration
-    cat > "$CONF_DIR/refind.conf" <<EOF
-timeout         5
-resolution      1920 1200
-enable_touch
-enable_mouse
-EOF
-
-    # Install drivers
-    mkdir -p "$CONF_DIR/drivers_x64"
-    DRIVER="btrfs_x64.efi"
-    DRIVER_INSTALL_PATH="$CONF_DIR/drivers_x64/$DRIVER"
-    cp "/usr/share/refind/drivers_x64/$DRIVER" "$DRIVER_INSTALL_PATH"
-
-    # Setup dracut ===========================================================================
-    echo "Removing mkinicpio..."
-    pacman --noconfirm -Runs mkinitcpio
-
-    echo "Setting up dracut..."
-    SYSTEM_PARTITION=$(partition_select)
-    SYSTEM_PART_UUID="$(blkid "$SYSTEM_PARTITION" | cut -d " " -f2 | cut -d '=' -f2 | sed 's/\"//g')"
-
-    cat >> /etc/dracut.conf.d/00-options.conf <<EOF
-hostonly="yes"
-hostonly_cmdline="no"
-early_microcode="yes"
-compress="zstd"
-reproducible="yes"
-add_dracutmodules+=" systemd "
-uefi="yes"
-kernel_cmdline="rd.luks.name=$SYSTEM_PART_UUID=$MAP_NAME root=/dev/mapper/$MAP_NAME rootfstype=btrfs rootflags=subvol=@root"
-EOF
-    dracut --force
-
-    # Userspace ==============================================================================
-
-    # Setup sudo
-    echo "Creatign a new user..."
-    echo "%wheel ALL=(ALL) ALL" >/etc/sudoers.d/wheel
-    read -r -p "Please enter name for a user account: " username
-    echo "Adding $username with root privilege."
-    useradd -m $username
-    usermod -aG wheel $username 
-    # usermod --shell /bin/zsh $username 
-    passwd "$username"
-
-    echo "Installing arch-install scripts" 
-    git clone --depth=1 https://github.com/AnonymusBadger/arch-install.git "/home/$username/arch-install"
-}
-
-arch-chroot /mnt chroot
+# Chroot exec ==============================================================================
+cp ./ /mnt/root/.
+arch-chroot /mnt /root/arch-install/chroot.sh

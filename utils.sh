@@ -1,7 +1,7 @@
 #!/usr/bin/env -S bash -e
 
 select_disk() {
-    PS3="Select the disk "
+    PS3="Select target disk "
     select drive in $(lsblk -dpnoNAME | grep -P "/dev/sd|nvme|vd");
     do
         echo "$drive"
@@ -23,9 +23,8 @@ select_swap_size() {
         # Set default value if swap_size is empty
         swap_size=${swap_size:-4}
 
-        if [[ $swap_size =~ ^[0-9]+$ ]]; then
-            swap_size_mb=$(( swap_size * 1024 ))
-	    echo "$swap_size_mb"
+        if [[ $swap_size =~ ^[1-9]+$ ]]; then
+	    echo "$swap_size"
             break  # Exit the loop once the swap size is set
         else
             echo "Error: Please enter a valid number for swap file size."
@@ -36,16 +35,14 @@ select_swap_size() {
 make_swap() {
     local swap_path=$1
     local swap_size=$(select_swap_size)  # Call the function to set the swap size
-    echo "Swap file size set to: $swap_size MB"
+    echo "Swap file size set to: $swap_size GB"
 
     read -r -p "Proceed? [Y/n] " response
     response=${response:-Y}
 
     if [[ "$response" =~ ^[Yy]$ ]]; then
         echo "Making swapfile..."
-        dd if=/dev/zero of="$swap_path" bs=1M count="$swap_size" status=progress
-        chmod 0600 "$swap_path"
-        mkswap -U clear "$swap_path"
+	btrfs filesystem mkswapfile --size "$swap_size"g --uuid clear $swap_path
         swapon "$swap_path"
         echo "Swap file created at '$swap_path' and activated."
     else
