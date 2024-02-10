@@ -2,7 +2,7 @@
 
 username="kajetan"
 
-su "$username" paru -S --noconfirm shim-signed sbsigntools
+sudo -U "$username" paru -S --noconfirm shim-signed sbsigntools
 
 openssl req -newkey rsa:2048 \
 	-nodes -keyout /etc/refind.d/keys/refind_local.key \

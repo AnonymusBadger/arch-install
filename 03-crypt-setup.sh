@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CRYPT_LABEL="cryptroot"
+CRYPT_LABEL="crypt"
 SYSTEM_LABEL="cryptroot"
 
 CRYPT="/dev/disk/by-partlabel/$CRYPT_LABEL"

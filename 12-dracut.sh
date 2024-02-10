@@ -10,13 +10,16 @@ cat > /etc/dracut.conf.d/00-options.conf <<EOF
 hostonly="yes"
 hostonly_cmdline="no"
 early_microcode="yes"
-compress="zstd"
-add_dracutmodules+=" systemd "
+compress="lz4"
+add_dracutmodules+=" systemd fido2 "
 uefi="yes"
+machine_id="no"
+parallel="yes"
+uefi_splash_image="/usr/share/systemd/bootctl/splash-arch.bmp"
 EOF
 
 cat > /etc/dracut.conf.d/10-cmdline.conf <<EOF
-kernel_cmdline="rd.luks.name=$SYSTEM_PART_UUID=cryptroot root=/dev/mapper/cryptroot rootfstype=btrfs rootflags=subvol=@root"
+kernel_cmdline="rd.luks.allow-discards rd.luks.options=discard,fido2-device=auto rd.luks.name=$SYSTEM_PART_UUID=cryptroot root=/dev/mapper/cryptroot rootfstype=btrfs rootflags=subvol=@root quiet "
 EOF
 
 cat > /etc/dracut.conf.d/20-secureboot.conf <<EOF
@@ -24,4 +27,5 @@ uefi_secureboot_cert="/etc/refind.d/keys/refind_local.crt"
 uefi_secureboot_key="/etc/refind.d/keys/refind_local.key"
 EOF
 
-su "$username" paru -S --noconfirm dracut-ukify
+username=kajetan
+sudo -u "$username" paru -S --noconfirm dracut-uefi-hook
