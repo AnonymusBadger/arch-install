@@ -2,6 +2,7 @@
 
 username="kajetan"
 
+pacman -S --noconfirm bat
 sudo -U "$username" paru -S --noconfirm shim-signed sbsigntools
 
 openssl req -newkey rsa:2048 \

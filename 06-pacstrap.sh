@@ -9,9 +9,10 @@ pacstrap -P /mnt \
        	intel-ucode \
 	btrfs-progs \
        	vim \
-       	sado \
+       	sudo \
 	btrfs-progs \
 	dracut \
+	less \
 	git
 
 genfstab -L -p /mnt >> /mnt/etc/fstab
