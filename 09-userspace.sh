@@ -13,6 +13,7 @@ echo "Installing arch-install scripts"
 sudo -u "$username" git clone --depth=1 https://github.com/AnonymusBadger/arch-install.git "/home/$username/arch-install"
 
 echo "Installing Paru..."
+pacman -S --noconfirm bat
 sudo -u "$username" git clone https://aur.archlinux.org/paru.git "/home/$username/paru"
 cd "/home/$username/paru"
 sudo -u "$username" -A makepkg -sic

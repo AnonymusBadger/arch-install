@@ -21,5 +21,5 @@ genfstab -L -p /mnt >> /mnt/etc/fstab
 chattr +C /mnt/tmp
 chattr +C /mnt/var
 
-cp -r ./ /mnt/root/
+cp -r ./ /mnt/root/arch-install
 arch-chroot /mnt
